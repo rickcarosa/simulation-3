@@ -5,50 +5,44 @@ const express = require('express')
     , Auth0Strategy = require('passport-auth0')
     , massive = require('massive')
     , controller = require('./controller')
+    , bodyParser = require('body-parser')
 
     const app = express();
+    app.use(bodyParser.json());
 
     const{
         CONNECTION_STRING,
-        SERVER_PORT
+        SERVER_PORT,
+        SESSION_SECRET
     } = process.env;
 
     massive(CONNECTION_STRING).then( db => {
         app.set('db', db);
     })
 
-    app.post('api/register', controller.create)
+    app.use(session({
+        secret: SESSION_SECRET,
+        resave: false,
+        saveUninitialized: true
+    }))
 
-    // app.use(session({
-    //     secret: SESSION_SECRET,
-    //     resave: false,
-    //     saveUninitialized: true
-    // }))
+    // app.use(passport.initialize());
+    // app.use(passport.session());
 
-//     app.use(passport.initialize());
-//     app.use(passport.session());
-
-// passport.use( new Auth0Strategy({
-//     domain: DOMAIN,
-//     clientID: CLIENT_ID,
-//     clientSecret: CLIENT_SECRET,
-//     callbackURL: CALLBACK_URL,
-//     scope: 'openid profile'
-// }, function(accessToken, refreshToken, extraParams, profile, done){
+    app.use((req, res, next) => {
+        console.log("I've been hit!!!")
+        next()
+    }) 
     
-//     const db = app.get('db');
-//     const {id, displayName, picture} = profile;
-//     console.log(profile)
-//     db.find_user([id]).then( users => {         
-//         if(users[0]){                           
-//             return done(null, users[0].id)      
-//         } else {
-//             db.create_user([displayName, picture, id]).then( createdUser => {  
-//                 return done(null, createdUser[0].id)
-//             })
-//         }
-//     })                 
-// }))
+    app.get('/api/please', (req, res) => {
+        res.status(200).send({data: 'YES!'})
+    })
+    
+    app.post('/api/again', controller.authenticate, (req, res) => {
+        res.status(200).send({message: 'it works again!!'})
+    })
+
+
 
     
 

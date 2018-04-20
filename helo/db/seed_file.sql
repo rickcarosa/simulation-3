@@ -21,4 +21,4 @@ insert into users(username, password)
 values($1, $2);
 
 select * from users u
-inner join posts p on u.id = p.id;
+left outer join posts p on u.id = p.author_id;
